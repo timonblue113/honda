@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI Bot Chat - Firebase Tĩnh</title>
+    <title>AI Bot Chat - Firebase & GitHub Data</title>
     <style>
         body { font-family: Arial, sans-serif; margin: 20px; background: #f4f4f9; }
         .container { max-width: 600px; margin: auto; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 0 10px rgba(0,0,0,0.1); }
@@ -17,10 +17,10 @@
 <body>
 
 <div class="container">
-    <h2 id="brand-title">Đang kết nối Firebase lấy cấu hình...</h2>
+    <h2 id="brand-title">Đang kết nối hệ thống...</h2>
     
     <label for="user-input"><b>Nhập câu hỏi của khách hàng:</b></label>
-    <textarea id="user-input" placeholder="Ví dụ: Xe Ranger Wildtrak giá nhiêu em?"></textarea>
+    <textarea id="user-input" placeholder="Ví dụ: Lệ phí trước bạ xe Civic tính sao em? Hoặc kiểm tra kho còn CR-V không?"></textarea>
     
     <button onclick="handleChat()">Hỏi AI & Bắn Telegram</button>
 
@@ -32,35 +32,50 @@
 </div>
 
 <script>
-    // 🔴 ÔNG ĐỔI CÁI URL NÀY THÀNH URL FIREBASE CỦA ÔNG NÈ (Nhớ giữ lại chữ /config_tinh.json ở đuôi)
+    // 1. URL Firebase của ông (Đã sửa theo cấu trúc gốc mới)
     const FIREBASE_URL = "https://project-chatbot01-3ea4f-default-rtdb.asia-southeast1.firebasedatabase.app/.json";
 
-    let APP_CONFIG = {};
-    let carData = "";
+    // 2. 🔴 ÔNG THAY 3 ĐƯỜNG LINK RAW GITHUB CỦA ÔNG VÀO ĐÂY NÈ
+    const GITHUB_INVENTORY_URL = "https://raw.githubusercontent.com/timonblue13/honda/main/data/inventory.json";
+    const GITHUB_PRICING_URL = "https://raw.githubusercontent.com/timonblue13/honda/main/data/pricing_calc.json";
+    const GITHUB_SERVICE_URL = "https://raw.githubusercontent.com/timonblue13/honda/main/data/service.json";
 
-    // Hàm khởi tạo: Lấy cấu hình bảo mật từ Firebase và nạp file json xe
+    let APP_CONFIG = {};
+    let gopDataNguCanh = ""; // Nơi chứa toàn bộ dữ liệu gộp của 3 file JSON
+
+    // Hàm khởi tạo: Tải cấu hình từ Firebase và kéo dữ liệu từ GitHub về
     async function initSystem() {
         try {
-            // 1. Kéo Key bảo mật từ Firebase về ngầm
+            // Bước A: Kéo Key bảo mật từ Firebase về ngầm
             let fbResponse = await fetch(FIREBASE_URL);
             APP_CONFIG = await fbResponse.json();
             
             document.getElementById('brand-title').innerText = "Hệ thống AI - " + APP_CONFIG.BRAND_NAME;
             console.log("Đã nạp xong cấu hình từ Firebase.");
 
-            // 2. Nạp dữ liệu xe nội bộ
-            let dataResponse = await fetch('./data.json');
-            let data = await dataResponse.json();
-            carData = JSON.stringify(data);
-            console.log("Đã nạp xong dữ liệu xe.");
+            // Bước B: Kéo đồng thời dữ liệu từ 3 file JSON trên GitHub
+            let [resInventory, resPricing, resService] = await Promise.all([
+                fetch(GITHUB_INVENTORY_URL).then(res => res.json()),
+                fetch(GITHUB_PRICING_URL).then(res => res.json()),
+                fetch(GITHUB_SERVICE_URL).then(res => res.json())
+            ]);
+
+            // Gộp cả 3 cục JSON lại thành 1 chuỗi văn bản làm ngữ cảnh tối thượng cho AI
+            gopDataNguCanh = `
+                DỮ LIỆU KHO XE VÀ PHỤ TÙNG (INVENTORY): ${JSON.stringify(resInventory)}
+                BẢNG TÍNH GIÁ VÀ LỆ PHÍ (PRICING): ${JSON.stringify(resPricing)}
+                QUY TRÌNH VÀ DỊCH VỤ BẢO DƯỠNG (SERVICE): ${JSON.stringify(resService)}
+            `;
+            
+            console.log("Đã gộp thành công dữ liệu từ 3 file JSON trên GitHub.");
         } catch (error) {
-            document.getElementById('brand-title').innerText = "❌ Lỗi kết nối Firebase!";
+            document.getElementById('brand-title').innerText = "❌ Lỗi khởi tạo hệ thống (Check lại URL)!";
             console.error(error);
         }
     }
     initSystem();
 
-    // Hàm xử lý chính khi bấm nút
+    // Hàm xử lý chính khi bấm nút tương tác
     async function handleChat() {
         const userInput = document.getElementById('user-input').value;
         const aiResponseBox = document.getElementById('ai-response');
@@ -71,14 +86,14 @@
             return;
         }
 
-        aiResponseBox.innerText = "AI đang suy nghĩ...";
+        aiResponseBox.innerText = "AI đang lục tìm dữ liệu và suy nghĩ...";
         teleStatusBox.innerText = "Chờ AI trả lời xong sẽ bắn thông báo...";
 
         try {
-            // 1. GỌI API GEMINI (Dùng Key vừa bốc từ Firebase về)
-            const prompt = `Bạn là nhân viên tư vấn của hãng. Dưới đây là dữ liệu về xe của chúng tôi:\n${carData}\n\nHãy trả lời câu hỏi sau của khách một cách ngắn gọn, lịch sự:\n"${userInput}"`;
+            // GỌI API GEMINI (Nạp toàn bộ dữ liệu gộp 3 file làm Context)
+            const prompt = `Bạn là nhân viên tư vấn thông minh của hãng. Hãy dựa hoàn toàn vào các nguồn dữ liệu dưới đây để trả lời chính xác câu hỏi của khách hàng:\n${gopDataNguCanh}\n\nCâu hỏi của khách: "${userInput}"\n\nYêu cầu trả lời lịch sự, đúng trọng tâm dựa trên dữ liệu cung cấp.`;
             
-            const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${APP_CONFIG.GEMINI_API_KEY}`;
+            const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${APP_CONFIG.GEMINI_API_KEY}`;
             
             const aiResponse = await fetch(geminiUrl, {
                 method: "POST",
@@ -93,7 +108,7 @@
             
             aiResponseBox.innerText = replyText;
 
-            // 2. BẮN THÔNG BÁO VỀ TELEGRAM (Dùng Token vừa bốc từ Firebase về)
+            // BẮN THÔNG BÁO VỀ TELEGRAM
             teleStatusBox.innerText = "Đang bắn tin nhắn sang Telegram...";
             
             const teleMessage = `🔔 *CÓ KHÁCH HÀNG HỎI BOT*\n\n❓ *Câu hỏi:* ${userInput}\n\n🤖 *AI Trả lời:* ${replyText}`;
@@ -112,11 +127,11 @@
             if (teleResponse.ok) {
                 teleStatusBox.innerText = "✅ Đã bắn thông báo sang nhóm Telegram thành công!";
             } else {
-                teleStatusBox.innerText = "❌ Lỗi bắn Telegram.";
+                teleStatusBox.innerText = "❌ Lỗi bắn Telegram, check lại Token hoặc Chat ID.";
             }
 
         } catch (error) {
-            aiResponseBox.innerText = "❌ Có lỗi xảy ra!";
+            aiResponseBox.innerText = "❌ Có lỗi xảy ra trong quá trình xử lý!";
             teleStatusBox.innerText = "❌ Thất bại.";
             console.error(error);
         }
