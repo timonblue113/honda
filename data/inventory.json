@@ -1,0 +1,104 @@
+{
+  "honda_cars": {
+    "Honda City": {
+      "segments": "Sedan 5 chỗ hạng B",
+      "versions": {
+        "G": {"price_niemyet": 499000000, "engine": "1.5L DOHC i-VTEC", "transmission": "CVT"},
+        "L": {"price_niemyet": 547000000, "engine": "1.5L DOHC i-VTEC", "transmission": "CVT"},
+        "RS": {"price_niemyet": 577000000, "engine": "1.5L DOHC i-VTEC", "transmission": "CVT"}
+      },
+      "highlights": [
+        "Hệ thống an toàn chủ động Honda SENSING trang bị tiêu chuẩn trên cả 3 phiên bản.",
+        "Thiết kế thể thao, không gian rộng rãi hàng đầu phân khúc B."
+      ],
+      "specs": {
+        "gam_xe": "134 mm",
+        "cong_suat": "119 Hp",
+        "tieu_hao_nhien_lieu": "5.6 L/100km (Hỗn hợp)"
+      }
+    },
+    "Honda BR-V": {
+      "segments": "MPV 7 chỗ chiến lược",
+      "versions": {
+        "G": {"price_niemyet": 629000000, "engine": "1.5L DOHC i-VTEC", "transmission": "CVT"},
+        "L": {"price_niemyet": 705000000, "engine": "1.5L DOHC i-VTEC", "transmission": "CVT"}
+      },
+      "highlights": [
+        "Xe 7 chỗ đa dụng gia đình, nhập khẩu nguyên chiếc.",
+        "Trang bị gói an toàn Honda SENSING bảo vệ tối ưu."
+      ],
+      "specs": {
+        "gam_xe": "207 mm",
+        "cong_suat": "119 Hp",
+        "tieu_hao_nhien_lieu": "6.4 L/100km"
+      }
+    },
+    "Honda HR-V": {
+      "segments": "SUV 5 chỗ thời thượng (B-SUV)",
+      "versions": {
+        "G": {"price_niemyet": 699000000, "engine": "1.5L i-VTEC", "transmission": "CVT"},
+        "L": {"price_niemyet": 750000000, "engine": "1.5L VTEC TURBO", "transmission": "CVT"},
+        "RS": {"price_niemyet": 869000000, "engine": "1.5L VTEC TURBO", "transmission": "CVT"}
+      },
+      "highlights": [
+        "Thiết kế phong cách SUV Coupe trẻ trung, hiện đại.",
+        "Bản L và RS trang bị động cơ tăng áp Turbo bốc và mạnh mẽ."
+      ],
+      "specs": {
+        "gam_xe": "181 mm",
+        "cong_suat": "119 Hp (bản G) / 174 Hp (bản L/RS)",
+        "tieu_hao_nhien_lieu": "6.7 L/100km"
+      }
+    },
+    "Honda Civic": {
+      "segments": "Sedan 5 chỗ hạng C (Đậm chất thể thao)",
+      "versions": {
+        "G": {"price_niemyet": 789000000, "engine": "1.5L VTEC TURBO", "transmission": "CVT"},
+        "RS": {"price_niemyet": 889000000, "engine": "1.5L VTEC TURBO", "transmission": "CVT"},
+        "e:HEV RS": {"price_niemyet": 999000000, "engine": "2.0L Động cơ Hybrid", "transmission": "E-CVT"}
+      },
+      "highlights": [
+        "Động cơ tăng áp VTEC TURBO mạnh mẽ hoặc tùy chọn máy Hybrid e:HEV cực kỳ tiết kiệm.",
+        "Cảm giác lái thể thao vô đối trong phân khúc sedan hạng C."
+      ],
+      "specs": {
+        "gam_xe": "134 mm",
+        "cong_suat": "176 Hp (Máy xăng) / 200 Hp (Hybrid)",
+        "tieu_hao_nhien_lieu": "6.35 L/100km"
+      }
+    },
+    "Honda CR-V": {
+      "segments": "SUV 7 chỗ hạng C cao cấp",
+      "versions": {
+        "G": {"price_niemyet": 1029000000, "engine": "1.5L VTEC TURBO", "transmission": "CVT (1 cầu)"},
+        "L": {"price_niemyet": 1099000000, "engine": "1.5L VTEC TURBO", "transmission": "CVT (1 cầu)"},
+        "L AWD": {"price_niemyet": 11070000000, "engine": "1.5L VTEC TURBO", "transmission": "CVT (2 cầu)"},
+        "e:HEV RS": {"price_niemyet": 1259000000, "engine": "2.0L Động cơ Hybrid", "transmission": "E-CVT (5 chỗ)"}
+      },
+      "highlights": [
+        "Thế hệ mới có tùy chọn dẫn động 4 bánh toàn thời gian AWD.",
+        "Phiên bản Hybrid e:HEV RS vận hành êm ái, tiêu hao nhiên liệu cực ít đô thị."
+      ],
+      "specs": {
+        "gam_xe": "198 mm",
+        "cong_suat": "188 Hp (Xăng) / 204 Hp (Hybrid)",
+        "tieu_hao_nhien_lieu": "6.9 L/100km (Xăng) / 4.9 L/100km (Hybrid)"
+      }
+    },
+    "Honda Accord": {
+      "segments": "Sedan hạng D cao cấp đại diện",
+      "versions": {
+        "Tổng thể": {"price_niemyet": 1319000000, "engine": "1.5L VTEC TURBO", "transmission": "CVT"}
+      },
+      "highlights": [
+        "Thiết kế lịch lãm, đẳng cấp doanh nhân, nhập khẩu nguyên chiếc.",
+        "Hệ thống cách âm vượt trội, không gian ngồi cực kỳ rộng rãi, trang bị đầy đủ công nghệ đỉnh cao."
+      ],
+      "specs": {
+        "gam_xe": "131 mm",
+        "cong_suat": "188 Hp",
+        "tieu_hao_nhien_lieu": "6.2 L/100km"
+      }
+    }
+  }
+}

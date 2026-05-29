@@ -1,0 +1,23 @@
+{
+  "inventory": {
+    "Honda City": {
+      "versions": ["G", "L", "RS"],
+      "price_range": "559 - 609 triệu",
+      "highlight": "Động cơ 1.5L DOHC i-VTEC, gói an toàn Honda SENSING trên cả 3 phiên bản."
+    },
+    "Honda Civic": {
+      "versions": ["E", "G", "RS"],
+      "price_range": "730 - 870 triệu",
+      "highlight": "Động cơ 1.5L VTEC TURBO tăng áp, cảm giác lái thể thao vượt trội."
+    },
+    "Honda CR-V": {
+      "versions": ["G", "L", "L AWD", "e:HEV RS"],
+      "price_range": "1.109 - 1.259 tỷ",
+      "highlight": "Có tùy chọn dẫn động 4 bánh AWD hoặc Động cơ Hybrid (e:HEV) siêu tiết kiệm xăng."
+    }
+  },
+  "policy": {
+    "bao_hanh": "3 năm hoặc 100.000 km tùy điều kiện nào đến trước.",
+    "tra_gop": "Hỗ trợ vay đến 80% giá trị xe, thời hạn lên đến 8 năm, liên kết nhiều ngân hàng lớn."
+  }
+}
