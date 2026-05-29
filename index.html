@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Bot Chat - Firebase Tĩnh</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; background: #f4f4f9; }
+        .container { max-width: 600px; margin: auto; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 0 10px rgba(0,0,0,0.1); }
+        h2 { color: #333; }
+        textarea { width: 100%; height: 80px; margin-bottom: 10px; padding: 10px; border-radius: 4px; border: 1px solid #ccc; resize: none; }
+        button { background: #28a745; color: white; border: none; padding: 10px 20px; border-radius: 4px; cursor: pointer; font-weight: bold; }
+        button:hover { background: #218838; }
+        .box { margin-top: 15px; padding: 15px; background: #e9ecef; border-radius: 4px; min-height: 50px; white-space: pre-wrap; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2 id="brand-title">Đang kết nối Firebase lấy cấu hình...</h2>
+    
+    <label for="user-input"><b>Nhập câu hỏi của khách hàng:</b></label>
+    <textarea id="user-input" placeholder="Ví dụ: Xe Ranger Wildtrak giá nhiêu em?"></textarea>
+    
+    <button onclick="handleChat()">Hỏi AI & Bắn Telegram</button>
+
+    <h3>Kết quả từ Gemini AI:</h3>
+    <div id="ai-response" class="box">Chưa có câu trả lời...</div>
+    
+    <h3>Trạng thái Telegram:</h3>
+    <div id="tele-status" class="box">Chưa gửi thông báo...</div>
+</div>
+
+<script>
+    // 🔴 ÔNG ĐỔI CÁI URL NÀY THÀNH URL FIREBASE CỦA ÔNG NÈ (Nhớ giữ lại chữ /config_tinh.json ở đuôi)
+    const FIREBASE_URL = "https://project-chatbot01-3ea4f-default-rtdb.asia-southeast1.firebasedatabase.app/.json";
+
+    let APP_CONFIG = {};
+    let carData = "";
+
+    // Hàm khởi tạo: Lấy cấu hình bảo mật từ Firebase và nạp file json xe
+    async function initSystem() {
+        try {
+            // 1. Kéo Key bảo mật từ Firebase về ngầm
+            let fbResponse = await fetch(FIREBASE_URL);
+            APP_CONFIG = await fbResponse.json();
+            
+            document.getElementById('brand-title').innerText = "Hệ thống AI - " + APP_CONFIG.BRAND_NAME;
+            console.log("Đã nạp xong cấu hình từ Firebase.");
+
+            // 2. Nạp dữ liệu xe nội bộ
+            let dataResponse = await fetch('./data.json');
+            let data = await dataResponse.json();
+            carData = JSON.stringify(data);
+            console.log("Đã nạp xong dữ liệu xe.");
+        } catch (error) {
+            document.getElementById('brand-title').innerText = "❌ Lỗi kết nối Firebase!";
+            console.error(error);
+        }
+    }
+    initSystem();
+
+    // Hàm xử lý chính khi bấm nút
+    async function handleChat() {
+        const userInput = document.getElementById('user-input').value;
+        const aiResponseBox = document.getElementById('ai-response');
+        const teleStatusBox = document.getElementById('tele-status');
+
+        if (!userInput.trim()) {
+            alert("Vui lòng nhập câu hỏi!");
+            return;
+        }
+
+        aiResponseBox.innerText = "AI đang suy nghĩ...";
+        teleStatusBox.innerText = "Chờ AI trả lời xong sẽ bắn thông báo...";
+
+        try {
+            // 1. GỌI API GEMINI (Dùng Key vừa bốc từ Firebase về)
+            const prompt = `Bạn là nhân viên tư vấn của hãng. Dưới đây là dữ liệu về xe của chúng tôi:\n${carData}\n\nHãy trả lời câu hỏi sau của khách một cách ngắn gọn, lịch sự:\n"${userInput}"`;
+            
+            const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${APP_CONFIG.GEMINI_API_KEY}`;
+            
+            const aiResponse = await fetch(geminiUrl, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    contents: [{ parts: [{ text: prompt }] }]
+                })
+            });
+
+            const aiData = await aiResponse.json();
+            const replyText = aiData.candidates[0].content.parts[0].text;
+            
+            aiResponseBox.innerText = replyText;
+
+            // 2. BẮN THÔNG BÁO VỀ TELEGRAM (Dùng Token vừa bốc từ Firebase về)
+            teleStatusBox.innerText = "Đang bắn tin nhắn sang Telegram...";
+            
+            const teleMessage = `🔔 *CÓ KHÁCH HÀNG HỎI BOT*\n\n❓ *Câu hỏi:* ${userInput}\n\n🤖 *AI Trả lời:* ${replyText}`;
+            const teleUrl = `https://api.telegram.org/bot${APP_CONFIG.TELEGRAM_TOKEN}/sendMessage`;
+
+            const teleResponse = await fetch(teleUrl, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    chat_id: APP_CONFIG.TELEGRAM_CHAT_ID,
+                    text: teleMessage,
+                    parse_mode: "Markdown"
+                })
+            });
+
+            if (teleResponse.ok) {
+                teleStatusBox.innerText = "✅ Đã bắn thông báo sang nhóm Telegram thành công!";
+            } else {
+                teleStatusBox.innerText = "❌ Lỗi bắn Telegram.";
+            }
+
+        } catch (error) {
+            aiResponseBox.innerText = "❌ Có lỗi xảy ra!";
+            teleStatusBox.innerText = "❌ Thất bại.";
+            console.error(error);
+        }
+    }
+</script>
+
+</body>
+</html>
