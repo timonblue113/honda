@@ -2,141 +2,373 @@
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI Bot Chat - Firebase & GitHub Data</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Honda Ôtô Đồng Tháp - Trợ Lý Ảo</title>
+    <link href="https://fonts.googleapis.com/css2?family=Segoe+UI:wght@400;600&display=swap" rel="stylesheet">
     <style>
-        body { font-family: Arial, sans-serif; margin: 20px; background: #f4f4f9; }
-        .container { max-width: 600px; margin: auto; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 0 10px rgba(0,0,0,0.1); }
-        h2 { color: #333; }
-        textarea { width: 100%; height: 80px; margin-bottom: 10px; padding: 10px; border-radius: 4px; border: 1px solid #ccc; resize: none; }
-        button { background: #28a745; color: white; border: none; padding: 10px 20px; border-radius: 4px; cursor: pointer; font-weight: bold; }
-        button:hover { background: #218838; }
-        .box { margin-top: 15px; padding: 15px; background: #e9ecef; border-radius: 4px; min-height: 50px; white-space: pre-wrap; }
+        :root {
+            --honda-red: #cc0000;
+            --honda-black: #111111;
+            --honda-white: #ffffff;
+            --bg-user-msg: #cc0000;
+            --bg-bot-msg: rgba(255, 255, 255, 0.96);
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', sans-serif; }
+        
+        /* KHÓA CHẾT TOÀN TRANG: Chống cuộn */
+        html, body {
+            height: 100vh; height: 100dvh; 
+            width: 100%;
+            overflow: hidden; 
+            position: relative;
+            display: flex; justify-content: center; align-items: center;
+            background-color: #000;
+        }
+        
+        /* HỆ THỐNG NỀN TĨNH */
+        #bg-container {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            z-index: 1; overflow: hidden;
+        }
+        
+        .bg-slider {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background-size: cover; background-position: center;
+            opacity: 0;
+            filter: brightness(0.4);
+            transition: opacity 2.0s ease-in-out; 
+            z-index: 1;
+        }
+
+        .bg-slider.active { opacity: 1; z-index: 2; }
+        
+        /* KHUNG CHAT */
+        #chat-box {
+            position: relative; z-index: 5;
+            width: 90%; 
+            max-width: 600px; 
+            height: 90vh; height: 90dvh;
+            background: rgba(248, 249, 251, 0.88); backdrop-filter: blur(25px); -webkit-backdrop-filter: blur(25px);
+            display: flex; flex-direction: column; overflow: hidden;
+            border-radius: 24px;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.6);
+        }
+
+        @media (min-width: 768px) {
+            #chat-box { 
+                max-width: 420px; 
+                height: 80vh;
+            }
+        }
+
+        #chat-header { 
+            background-color: var(--honda-red); 
+            color: var(--honda-white); 
+            padding: 14px 18px; 
+            display: flex; justify-content: space-between; align-items: center; 
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1); 
+            z-index: 10;
+            flex-shrink: 0;
+        }
+        #chat-header h1 { font-size: 1.05rem; font-weight: 600; letter-spacing: 0.2px; text-transform: uppercase; }
+        #chat-header span { font-size: 0.75rem; opacity: 0.85; display: block; margin-top: 2px; }
+
+        /* VÙNG CUỘN TIN NHẮN */
+        #messages { 
+            flex: 1; padding: 14px; 
+            overflow-y: auto; 
+            display: flex; flex-direction: column; gap: 12px; 
+            scroll-behavior: smooth; 
+            -webkit-overflow-scrolling: touch; 
+        }
+        
+        .msg { padding: 10px 14px; border-radius: 16px; font-size: 0.9rem; line-height: 1.45; max-width: 85%; word-wrap: break-word; }
+        .user { background-color: var(--bg-user-msg); color: var(--honda-white); align-self: flex-end; border-bottom-right-radius: 4px; box-shadow: 0 3px 8px rgba(204, 0, 0, 0.15); }
+        .bot { background-color: var(--bg-bot-msg); color: var(--honda-black); align-self: flex-start; border-top-left-radius: 4px; border: 1px solid rgba(0, 0, 0, 0.04); box-shadow: 0 2px 6px rgba(0, 0, 0, 0.03); }
+        
+        /* THANH NHẬP LIỆU */
+        #input-area { 
+            display: flex; padding: 10px 14px; border-top: 1px solid rgba(0, 0, 0, 0.06); 
+            background-color: rgba(255, 255, 255, 1); align-items: center; gap: 8px; z-index: 10;
+            flex-shrink: 0;
+            padding-bottom: calc(10px + env(safe-area-inset-bottom)); 
+        }
+        #user-input { 
+            flex: 1; padding: 10px 16px; 
+            border: 1px solid rgba(0, 0, 0, 0.1); border-radius: 24px; 
+            outline: none; background-color: #f0f2f5; 
+            font-size: 0.95rem; transition: all 0.2s; 
+        }
+        #user-input:focus { border-color: var(--honda-red); background-color: var(--honda-white); }
+        
+        #send-btn { 
+            background-color: var(--honda-red); color: var(--honda-white); 
+            border: none; width: 40px; height: 40px; border-radius: 50%; 
+            cursor: pointer; display: flex; justify-content: center; align-items: center; 
+            font-size: 1rem; flex-shrink: 0; box-shadow: 0 3px 8px rgba(204, 0, 0, 0.15); 
+        }
+        #user-input:disabled { opacity: 0.6; cursor: not-allowed; }
+
+        .thinking-msg { display: flex; gap: 5px; padding: 10px 14px; border-radius: 16px; background-color: var(--bg-bot-msg); align-self: flex-start; border-top-left-radius: 4px; border: 1px solid rgba(0, 0, 0, 0.03); width: fit-content; }
+        .dot { width: 6px; height: 6px; background-color: rgba(0, 0, 0, 0.4); border-radius: 50%; animation: bounce 1.3s infinite ease-in-out; }
+        .dot:nth-child(1) { animation-delay: -0.32s; }
+        .dot:nth-child(2) { animation-delay: -0.16s; }
+        @keyframes bounce { 0%, 80%, 100% { transform: scale(0); } 40% { transform: scale(1.0); } }
     </style>
 </head>
 <body>
 
-<div class="container">
-    <h2 id="brand-title">Đang kết nối hệ thống...</h2>
-    
-    <label for="user-input"><b>Nhập câu hỏi của khách hàng:</b></label>
-    <textarea id="user-input" placeholder="Ví dụ: Lệ phí trước bạ xe Civic tính sao em? Hoặc kiểm tra kho còn CR-V không?"></textarea>
-    
-    <button onclick="handleChat()">Hỏi AI & Bắn Telegram</button>
+    <div id="bg-container">
+        <div class="bg-slider active" style="background-image: url('https://images.unsplash.com/photo-1533473359331-0135ef1b58bf?auto=format&fit=crop&w=1920&q=80');"></div>
+        <div class="bg-slider" style="background-image: url('https://images.unsplash.com/photo-1618843479313-40f8afb4b4d8?auto=format&fit=crop&w=1920&q=80');"></div>
+        <div class="bg-slider" style="background-image: url('https://images.unsplash.com/photo-1549399542-7e3f8b79c341?auto=format&fit=crop&w=1920&q=80');"></div>
+    </div>
 
-    <h3>Kết quả từ Gemini AI:</h3>
-    <div id="ai-response" class="box">Chưa có câu trả lời...</div>
-    
-    <h3>Trạng thái Telegram:</h3>
-    <div id="tele-status" class="box">Chưa gửi thông báo...</div>
-</div>
+    <div id="chat-box">
+        <div id="chat-header">
+            <div>
+                <h1 id="brand-title">Honda Ôtô Đồng Tháp</h1>
+                <span id="bot-subtitle">Đang kết nối hệ thống...</span>
+            </div>
+            <div style="font-size: 1.3rem;">🚗</div>
+        </div>
 
-<script>
-    // 1. URL Firebase của ông (Đã sửa theo cấu trúc gốc mới)
-    const FIREBASE_URL = "https://project-chatbot01-3ea4f-default-rtdb.asia-southeast1.firebasedatabase.app/.json";
+        <div id="messages"></div>
 
-    // 2. 🔴 ÔNG THAY 3 ĐƯỜNG LINK RAW GITHUB CỦA ÔNG VÀO ĐÂY NÈ
-    const GITHUB_INVENTORY_URL = "https://raw.githubusercontent.com/timonblue13/honda/main/data/inventory.json";
-    const GITHUB_PRICING_URL = "https://raw.githubusercontent.com/timonblue13/honda/main/data/pricing_calc.json";
-    const GITHUB_SERVICE_URL = "https://raw.githubusercontent.com/timonblue13/honda/main/data/service.json";
+        <div id="input-area">
+            <input type="text" id="user-input" placeholder="Đang tải dữ liệu..." disabled>
+            <button type="button" id="send-btn">➤</button>
+        </div>
+    </div>
 
-    let APP_CONFIG = {};
-    let gopDataNguCanh = ""; // Nơi chứa toàn bộ dữ liệu gộp của 3 file JSON
+    <script>
+        // Endpoint REST API trỏ thẳng về gốc database Firebase của ông
+        const FIREBASE_DB_URL = "https://project-chatbot01-3ea4f-default-rtdb.asia-southeast1.firebasedatabase.app/.json";
 
-    // Hàm khởi tạo: Tải cấu hình từ Firebase và kéo dữ liệu từ GitHub về
-    async function initSystem() {
-        try {
-            // Bước A: Kéo Key bảo mật từ Firebase về ngầm
-            let fbResponse = await fetch(FIREBASE_URL);
-            APP_CONFIG = await fbResponse.json();
-            
-            document.getElementById('brand-title').innerText = "Hệ thống AI - " + APP_CONFIG.BRAND_NAME;
-            console.log("Đã nạp xong cấu hình từ Firebase.");
+        // Khởi tạo bộ nhớ cấu hình trống để nhận dữ liệu động
+        let dbConfig = {};
+        let hondaContext = "";
+        let chatHistory = [];
+        let historicalLeads = new Set();
 
-            // Bước B: Kéo đồng thời dữ liệu từ 3 file JSON trên GitHub
-            let [resInventory, resPricing, resService] = await Promise.all([
-                fetch(GITHUB_INVENTORY_URL).then(res => res.json()),
-                fetch(GITHUB_PRICING_URL).then(res => res.json()),
-                fetch(GITHUB_SERVICE_URL).then(res => res.json())
-            ]);
+        // 1. HIỆU ỨNG CHUYỂN NỀN
+        const sliders = document.querySelectorAll('.bg-slider');
+        let currentBgIndex = 0;
+        setInterval(() => {
+            sliders[currentBgIndex].classList.remove('active');
+            currentBgIndex = (currentBgIndex + 1) % sliders.length;
+            sliders[currentBgIndex].classList.add('active');
+        }, 8000);
 
-            // Gộp cả 3 cục JSON lại thành 1 chuỗi văn bản làm ngữ cảnh tối thượng cho AI
-            gopDataNguCanh = `
-                DỮ LIỆU KHO XE VÀ PHỤ TÙNG (INVENTORY): ${JSON.stringify(resInventory)}
-                BẢNG TÍNH GIÁ VÀ LỆ PHÍ (PRICING): ${JSON.stringify(resPricing)}
-                QUY TRÌNH VÀ DỊCH VỤ BẢO DƯỠNG (SERVICE): ${JSON.stringify(resService)}
-            `;
-            
-            console.log("Đã gộp thành công dữ liệu từ 3 file JSON trên GitHub.");
-        } catch (error) {
-            document.getElementById('brand-title').innerText = "❌ Lỗi khởi tạo hệ thống (Check lại URL)!";
-            console.error(error);
-        }
-    }
-    initSystem();
+        // 2. KHỞI CHẠY HỆ THỐNG ĐỒNG BỘ
+        async function initApplication() {
+            await loadFirebaseData();
+            await loadLocalInventory();
 
-    // Hàm xử lý chính khi bấm nút tương tác
-    async function handleChat() {
-        const userInput = document.getElementById('user-input').value;
-        const aiResponseBox = document.getElementById('ai-response');
-        const teleStatusBox = document.getElementById('tele-status');
+            if (dbConfig.BRAND_NAME) {
+                document.getElementById('brand-title').innerText = `${dbConfig.BRAND_NAME} Ôtô Đồng Tháp`;
+            }
+            document.getElementById('bot-subtitle').innerText = `Trợ lý ảo ${dbConfig.namchat || 'Tư vấn viên'} trực tuyến di động`;
+            document.getElementById('user-input').placeholder = `Hỏi ${dbConfig.namchat || 'tôi'} về giá xe, khuyến mãi...`;
+            document.getElementById('user-input').disabled = false;
 
-        if (!userInput.trim()) {
-            alert("Vui lòng nhập câu hỏi!");
-            return;
+            renderWelcomeMessage();
         }
 
-        aiResponseBox.innerText = "AI đang lục tìm dữ liệu và suy nghĩ...";
-        teleStatusBox.innerText = "Chờ AI trả lời xong sẽ bắn thông báo...";
+        // Đọc cấu hình trực tiếp từ root Firebase
+        async function loadFirebaseData() {
+            try {
+                const response = await fetch(FIREBASE_DB_URL);
+                const data = await response.json();
+                if (data) {
+                    dbConfig = data;
+                    console.log("Cấu hình Firebase đã nạp thành công!");
+                }
+            } catch (e) {
+                console.error("Lỗi đọc Firebase:", e);
+                // Khởi tạo giá trị tối thiểu nếu lỗi để không crash giao diện
+                dbConfig = { namchat: "Út", BRAND_NAME: "Honda" };
+            }
+        }
 
-        try {
-            // GỌI API GEMINI (Nạp toàn bộ dữ liệu gộp 3 file làm Context)
-            const prompt = `Bạn là nhân viên tư vấn thông minh của hãng. Hãy dựa hoàn toàn vào các nguồn dữ liệu dưới đây để trả lời chính xác câu hỏi của khách hàng:\n${gopDataNguCanh}\n\nCâu hỏi của khách: "${userInput}"\n\nYêu cầu trả lời lịch sự, đúng trọng tâm dựa trên dữ liệu cung cấp.`;
+        // Đọc hệ thống file JSON thông số xe cục bộ từ thư mục data/
+        async function loadLocalInventory() {
+            try {
+                const resInv = await fetch('data/inventory.json').then(r => r.text());
+                const resPrice = await fetch('data/pricing_calc.json').then(r => r.text());
+                const resService = await fetch('data/service.json').then(r => r.text());
+                const resPromo = await fetch('data/promotion.json').then(r => r.text()).catch(() => "Hiện chưa cập nhật gói ưu đãi mới.");
+
+                hondaContext = `=== DATA ĐẠI LÝ ===\n${resInv}\n${resPrice}\n${resService}\n=== CHƯƠNG TRÌNH KHUYẾN MÃI ===\n${resPromo}`;
+                console.log("Dữ liệu xe cục bộ đã đồng bộ!");
+            } catch (e) {
+                console.error("Không tìm thấy các file dữ liệu xe cục bộ:", e);
+                hondaContext = "Dữ liệu thông số xe tạm thời chưa cập nhật.";
+            }
+        }
+
+        function renderWelcomeMessage() {
+            const currentName = dbConfig.namchat || "Út";
+            const currentBrand = dbConfig.BRAND_NAME ? dbConfig.BRAND_NAME.toUpperCase() : "HONDA";
             
-            const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${APP_CONFIG.GEMINI_API_KEY}`;
+            const welcomeText = `🚗 Kính chào Anh/Chị! Tôi là <strong>${currentName} bán xe</strong> - Trợ lý công nghệ số của đại lý ${currentBrand} Ôtô Đồng Tháp.<br><br>Hôm nay tôi có thể hỗ trợ Anh/Chị thông tin chi tiết về giá xe, chi phí lăn bánh hay các **Chương trình khuyến mãi** của dòng xe nào ạ?<br><em>(City, Civic, CR-V, HR-V, BR-V, Accord)</em>`;
+            appendMessage(welcomeText, 'bot');
+        }
+
+        // 3. XỬ LÝ GỬI YÊU CẦU TRỰC TIẾP LÊN GOOGLE GEMINI API (KHÔNG QUA CLOUD RUN)
+        async function handleSendMessage() {
+            const inputEl = document.getElementById('user-input');
+            const text = inputEl.value.trim();
+            if(!text || !dbConfig.GEMINI_API_KEY) return;
+
+            appendMessage(text, 'user');
+            inputEl.value = '';
+            scrollToBottom();
+
+            chatHistory.push({ role: "user", parts: [{ text: text }] });
+            checkAndExtractLead(text);
+
+            showThinkingMessage();
+            inputEl.disabled = true;
+
+            // Xây dựng ngữ cảnh Prompt hệ thống
+            const currentName = dbConfig.namchat || "Út";
+            const currentBrand = dbConfig.BRAND_NAME || "Honda";
             
-            const aiResponse = await fetch(geminiUrl, {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                    contents: [{ parts: [{ text: prompt }] }]
-                })
-            });
+            const systemInstruction = `
+            Bạn là một Chuyên viên tư vấn ảo cao cấp tên là ${currentName}, làm việc tại đại lý Ô tô ${currentBrand} Đồng Tháp.
+            Nhiệm vụ của bạn là tư vấn bán hàng, giải đáp thông số, tính toán chi phí, áp dụng các ưu đãi khuyến mãi và chốt hẹn khách hàng mua xe dựa trên cơ sở dữ liệu dưới đây.
 
-            const aiData = await aiResponse.json();
-            const replyText = aiData.candidates[0].content.parts[0].text;
-            
-            aiResponseBox.innerText = replyText;
+            ---
+            CƠ SỞ DỮ LIỆU ĐẠI LÝ:
+            ${hondaContext}
+            ---
 
-            // BẮN THÔNG BÁO VỀ TELEGRAM
-            teleStatusBox.innerText = "Đang bắn tin nhắn sang Telegram...";
-            
-            const teleMessage = `🔔 *CÓ KHÁCH HÀNG HỎI BOT*\n\n❓ *Câu hỏi:* ${userInput}\n\n🤖 *AI Trả lời:* ${replyText}`;
-            const teleUrl = `https://api.telegram.org/bot${APP_CONFIG.TELEGRAM_TOKEN}/sendMessage`;
+            QUY TẮC TƯ DUY VÀ XỬ LÝ TOÁN HỌC (BẮT BUỘC):
+            1. Trò chuyện tự nhiên, chuyên nghiệp như một tư vấn viên ô tô lão luyện. KHÔNG trả lời rập khuôn máy móc.
+            2. Chỉ tư vấn thông tin dựa trên dữ liệu được cung cấp. Nếu khách hỏi thông tin hoang đường không có trong hệ thống, hãy lịch sự từ chối khéo và hướng cuộc trò chuyện về các dòng xe phân phối.
+            3. Khi khách hỏi về ưu đãi hoặc giá xe, hãy chủ động lấy thông tin Khuyến mãi từ phần "CHƯƠNG TRÌNH KHUYẾN MÃI", đồng thời gài khách để lại số điện thoại/Zalo để phòng kinh doanh gửi bảng giá tốt nhất hôm nay.
+            4. Tính toán chi phí lăn bánh: Lấy giá niêm yết từ dữ liệu, tính thuế trước bạ 10%, phí biển số khu vực II (1,000,000đ cho Cao Lãnh) hoặc khu vực III (200,000đ cho Huyện), kết hợp cộng các phí cố định (Kiểm định: 230k, Đường bộ: 1560k, Bảo hiểm TNDS: 480.7k). In rõ ràng phép tính tổng ra màn hình.`;
 
-            const teleResponse = await fetch(teleUrl, {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                    chat_id: APP_CONFIG.TELEGRAM_CHAT_ID,
-                    text: teleMessage,
-                    parse_mode: "Markdown"
-                })
-            });
+            try {
+                // Giới hạn lịch sử chat gửi lên API (lấy tối đa 6 lượt hội thoại gần nhất)
+                const limitedHistory = chatHistory.slice(-6);
 
-            if (teleResponse.ok) {
-                teleStatusBox.innerText = "✅ Đã bắn thông báo sang nhóm Telegram thành công!";
-            } else {
-                teleStatusBox.innerText = "❌ Lỗi bắn Telegram, check lại Token hoặc Chat ID.";
+                // Endpoint chính thức gọi trực tiếp mô hình Gemini 1.5 Flash ổn định và kinh tế nhất
+                const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${dbConfig.GEMINI_API_KEY}`;
+
+                const response = await fetch(geminiUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        contents: limitedHistory,
+                        systemInstruction: { parts: [{ text: systemInstruction }] },
+                        generationConfig: { temperature: 0.3, maxOutputTokens: 1000 }
+                    })
+                });
+
+                const result = await response.json();
+                removeThinkingMessage();
+                inputEl.disabled = false;
+
+                if (result.candidates && result.candidates[0].content.parts[0].text) {
+                    let aiReply = result.candidates[0].content.parts[0].text;
+                    appendMessage(aiReply, 'bot');
+                    chatHistory.push({ role: "model", parts: [{ text: aiReply }] });
+                } else {
+                    throw new Error("Cấu trúc phản hồi API lỗi");
+                }
+                
+                scrollToBottom();
+                inputEl.focus();
+
+            } catch (error) {
+                console.error("Gemini Direct API Error:", error);
+                removeThinkingMessage();
+                inputEl.disabled = false;
+                appendMessage(`Dữ liệu bảng giá đang được cập nhật cục bộ. Anh/Chị có thể gửi lại yêu cầu hoặc để lại số điện thoại để ${currentName} kết nối hỗ trợ ngay qua Zalo nhé! 🥺`, 'bot');
+                scrollToBottom();
+            }
+        }
+
+        // 4. KIỂM TRA SỐ ĐIỆN THOẠI VÀ BẮN TRỰC TIẾP LÊN TELEGRAM BOT API
+        function checkAndExtractLead(inputText) {
+            const phoneRegex = /(03|05|07|08|09|01[2|6|8|9])+([0-9]{8})\b/g;
+            const foundPhones = inputText.match(phoneRegex);
+
+            if (foundPhones) {
+                foundPhones.forEach(phone => {
+                    if (!historicalLeads.has(phone)) {
+                        historicalLeads.add(phone);
+                        sendDirectToTelegram(phone, inputText);
+                    }
+                });
+            }
+        }
+
+        async function sendDirectToTelegram(phone, fullText) {
+            if (!dbConfig.TELEGRAM_TOKEN || !dbConfig.TELEGRAM_CHAT_ID) {
+                console.warn("Chưa cấu hình thông tin Telegram trên Firebase.");
+                return;
             }
 
-        } catch (error) {
-            aiResponseBox.innerText = "❌ Có lỗi xảy ra trong quá trình xử lý!";
-            teleStatusBox.innerText = "❌ Thất bại.";
-            console.error(error);
-        }
-    }
-</script>
+            try {
+                const teleUrl = `https://api.telegram.org/bot${dbConfig.TELEGRAM_TOKEN}/sendMessage`;
+                const formattedTime = new Date().toLocaleString('vi-VN', { timeZone: 'Asia/Ho_Chi_Minh' });
+                const brand = dbConfig.BRAND_NAME ? dbConfig.BRAND_NAME.toUpperCase() : "HONDA";
 
+                const logMessage = `🔔 **KHÁCH HÀNG MỚI từ CHATBOT ${brand}** 🔔\n\n` +
+                                   `🕒 **Thời gian:** ${formattedTime}\n` +
+                                   `📱 **Số điện thoại:** ${phone}\n` +
+                                   `💬 **Nội dung chat:** ${fullText}`;
+
+                await fetch(teleUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        chat_id: dbConfig.TELEGRAM_CHAT_ID,
+                        text: logMessage,
+                        parse_mode: "Markdown"
+                    })
+                });
+                console.log("Đã đẩy Lead trực tiếp lên Telegram!");
+            } catch (e) {
+                console.error("Lỗi đẩy thông tin lên Telegram Bot API:", e);
+            }
+        }
+
+        // 5. CÁC HÀM TIỆN ÍCH ĐỊNH DẠNG VÀ RENDER GIAO DIỆN
+        function appendMessage(text, sender) {
+            const msgDiv = document.createElement('div');
+            msgDiv.classList.add('msg', sender);
+            // Chuyển đổi ký tự xuống dòng và format chữ đậm Markdown sang HTML
+            let formattedText = text.replace(/\n/g, '<br>').replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+            msgDiv.innerHTML = formattedText;
+            document.getElementById('messages').appendChild(msgDiv);
+        }
+        
+        function showThinkingMessage() {
+            const thinkingDiv = document.createElement('div');
+            thinkingDiv.id = 'thinking-indicator';
+            thinkingDiv.classList.add('thinking-msg');
+            thinkingDiv.innerHTML = '<div class="dot"></div><div class="dot"></div><div class="dot"></div>';
+            document.getElementById('messages').appendChild(thinkingDiv);
+            scrollToBottom();
+        }
+        
+        function removeThinkingMessage() { const td = document.getElementById('thinking-indicator'); if (td) td.remove(); }
+        function scrollToBottom() { const m = document.getElementById('messages'); m.scrollTop = m.scrollHeight; }
+
+        document.getElementById("send-btn").onclick = handleSendMessage;
+        document.getElementById("user-input").onkeypress = function(event) {
+            if (event.key === 'Enter') {
+                handleSendMessage();
+            }
+        };
+
+        // Kích hoạt ứng dụng khi toàn bộ tài nguyên window sẵn sàng
+        window.onload = initApplication;
+    </script>
 </body>
 </html>
