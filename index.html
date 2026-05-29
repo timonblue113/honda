@@ -256,7 +256,7 @@
                 const limitedHistory = chatHistory.slice(-6);
 
                 // Endpoint chính thức gọi trực tiếp mô hình Gemini 1.5 Flash ổn định và kinh tế nhất
-                const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${dbConfig.GEMINI_API_KEY}`;
+                const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${dbConfig.GEMINI_API_KEY}`;
 
                 const response = await fetch(geminiUrl, {
                     method: 'POST',
